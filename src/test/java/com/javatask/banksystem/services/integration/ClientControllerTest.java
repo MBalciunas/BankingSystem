@@ -20,7 +20,7 @@ public class ClientControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    public void singUpDeposit() throws Exception {
+    public void singUpDepositAndWithdraw() throws Exception {
 
         String email = "john@gmail.com";
         String password = "password";
@@ -38,6 +38,12 @@ public class ClientControllerTest {
                 .content(clientDeposit))
                 .andExpect(status().isOk())
         .andExpect(content().string("1000"));
+
+        mockMvc.perform(post("/clients/withdraw")
+                .contentType("application/json")
+                .content(clientWithdraw))
+                .andExpect(status().isOk())
+                .andExpect(content().string("500"));
     }
 
     @Test
@@ -84,6 +90,24 @@ public class ClientControllerTest {
         mockMvc.perform(post("/clients/deposit")
                 .contentType("application/json")
                 .content(clientBadPasswordDeposit))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void withdrawWrongPassword() throws Exception {
+        String email = "john4@gmail.com";
+        String password = "password";
+        String client = getClientJson(email, password);
+        String clientBadPasswordWithdraw = getClientJson(email, password + "Bad", 1000);
+
+        mockMvc.perform(post("/clients/signup")
+                .contentType("application/json")
+                .content(client))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/clients/withdraw")
+                .contentType("application/json")
+                .content(clientBadPasswordWithdraw))
                 .andExpect(status().isBadRequest());
     }
 

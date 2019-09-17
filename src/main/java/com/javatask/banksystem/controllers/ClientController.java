@@ -44,4 +44,15 @@ public class ClientController {
         }
         return new ResponseEntity(balance, HttpStatus.OK);
     }
+
+    @PostMapping("/withdraw")
+    public ResponseEntity withdraw(@RequestBody Map<String, String> request) {
+        long balance;
+        try {
+            balance = clientService.withdrawAmount(request.get("email"), request.get("password"), Long.parseLong(request.get("amount")));
+        } catch (IllegalStateException e) {
+            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity(balance, HttpStatus.OK);
+    }
 }
