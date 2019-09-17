@@ -2,9 +2,13 @@ package com.javatask.banksystem.services;
 
 import com.javatask.banksystem.models.client.Client;
 import com.javatask.banksystem.models.client.ClientRepository;
+import com.javatask.banksystem.models.transaction.Transaction;
+import com.javatask.banksystem.models.transaction.TransactionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -45,4 +49,32 @@ public class ClientService {
         Pattern pat = Pattern.compile(emailRegex);
         return pat.matcher(email).matches();
     }
+
+    public long depositAmount(String email, String password, long amount) {
+        Client client = login(email, password);
+        client.setBalance(client.getBalance() + amount);
+
+        return client.getBalance();
+    }
+
+    private Client login(String email, String password) {
+        Client client = getClient(email);
+        verifyPassword(client, password);
+        return client;
+    }
+
+    private void verifyPassword(Client client, String password) {
+        if(!client.getPassword().equals(password)) {
+            throw new IllegalStateException("Incorrect password");
+        }
+    }
+
+    private Client getClient(String email) {
+        Optional<Client> clientOptional = clientRepository.findByEmail(email);
+        if (!clientOptional.isPresent()) {
+            throw new IllegalStateException("User not found");
+        }
+        return clientOptional.get();
+    }
+
 }
