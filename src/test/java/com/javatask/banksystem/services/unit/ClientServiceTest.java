@@ -76,4 +76,40 @@ public class ClientServiceTest {
 
         fail("Client with email wasn't found");
     }
+
+    @Test
+    public void withdrawAmountTest() {
+        Client client = Client.builder().email("e").password("e").balance(1000).build();
+        ClientRepository clientRepository = mock(ClientRepository.class);
+        given(clientRepository.findByEmail(client.getEmail())).willReturn(Optional.of(client));
+
+        ClientService clientService = new ClientService(clientRepository);
+        long balance = clientService.withdrawAmount(client.getEmail(), client.getPassword(), 100);
+
+        assertEquals(900, balance);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void withdrawAmountTest_EmailNotFound() {
+        Client client = Client.builder().build();
+        ClientRepository clientRepository = mock(ClientRepository.class);
+        given(clientRepository.findById(1L)).willReturn(Optional.empty());
+
+        ClientService clientService = new ClientService(clientRepository);
+        long balance = clientService.withdrawAmount(client.getEmail(), client.getPassword(), 100);
+
+        fail("Client with email wasn't found");
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void withdrawAmountTest_NotEnoughFunds() {
+        Client client = Client.builder().email("e").password("e").build();
+        ClientRepository clientRepository = mock(ClientRepository.class);
+        given(clientRepository.findByEmail(client.getEmail())).willReturn(Optional.of(client));
+
+        ClientService clientService = new ClientService(clientRepository);
+        long balance = clientService.withdrawAmount(client.getEmail(), client.getPassword(), 100);
+
+        fail("Not enough funds");
+    }
 }

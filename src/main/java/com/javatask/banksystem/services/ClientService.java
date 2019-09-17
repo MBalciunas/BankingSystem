@@ -63,6 +63,15 @@ public class ClientService {
         return client;
     }
 
+    public long withdrawAmount(String email, String password, long amount) {
+        Client client = login(email, password);
+        if (client.getBalance() < amount) {
+            throw new IllegalStateException("Not enough funds");
+        }
+        client.setBalance(client.getBalance() - amount);
+        return client.getBalance();
+    }
+
     private void verifyPassword(Client client, String password) {
         if(!client.getPassword().equals(password)) {
             throw new IllegalStateException("Incorrect password");
@@ -76,5 +85,4 @@ public class ClientService {
         }
         return clientOptional.get();
     }
-
 }
