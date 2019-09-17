@@ -33,4 +33,15 @@ public class ClientController {
         }
         return new ResponseEntity(HttpStatus.OK);
     }
+
+    @PostMapping("/deposit")
+    public ResponseEntity deposit(@RequestBody Map<String, String> request) {
+        long balance;
+        try {
+            balance = clientService.depositAmount(request.get("email"), request.get("password"), Long.parseLong(request.get("amount")));
+        } catch (IllegalStateException e) {
+            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity(balance, HttpStatus.OK);
+    }
 }
