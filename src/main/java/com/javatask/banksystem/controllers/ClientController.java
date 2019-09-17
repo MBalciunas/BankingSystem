@@ -55,4 +55,14 @@ public class ClientController {
         }
         return new ResponseEntity(balance, HttpStatus.OK);
     }
+
+    @GetMapping("/getInfo")
+    public ResponseEntity getInfo(@RequestBody Client client) {
+        try {
+            client = clientService.getInfo(client);
+        } catch (IllegalStateException e) {
+            return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity(client, HttpStatus.OK);
+    }
 }
