@@ -1,0 +1,54 @@
+package com.javatask.banksystem.services.integration;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
+public class ClientControllerTest {
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Test
+    public void invalidSignUpEmail() throws Exception {
+        String email = "johngmail.com";
+        String password = "password";
+        String client = getClientJson(email, password);
+
+        mockMvc.perform(post("/clients/signup")
+                .contentType("application/json")
+                .content(client))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void signUpEmailTaken() throws Exception {
+        String email = "john2@gmail.com";
+        String password = "password";
+        String client = getClientJson(email, password);
+
+        mockMvc.perform(post("/clients/signup")
+                .contentType("application/json")
+                .content(client))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/clients/signup")
+                .contentType("application/json")
+                .content(client))
+                .andExpect(status().isBadRequest());
+    }
+
+    private String getClientJson(String email, String password) {
+        return String.format("{\"email\":\"%s\", \"password\":\"%s\"}", email, password);
+    }
+}
