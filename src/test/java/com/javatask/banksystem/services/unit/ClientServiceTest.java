@@ -2,7 +2,9 @@ package com.javatask.banksystem.services.unit;
 
 import com.javatask.banksystem.models.client.Client;
 import com.javatask.banksystem.models.client.ClientRepository;
+import com.javatask.banksystem.models.transaction.TransactionRepository;
 import com.javatask.banksystem.services.ClientService;
+import com.javatask.banksystem.services.TransactionService;
 import org.junit.Test;
 
 import java.util.Optional;
@@ -21,7 +23,7 @@ public class ClientServiceTest {
         Client client = Client.builder().email(email).password(password).build();
         ClientRepository clientRepository = mock(ClientRepository.class);
         given(clientRepository.findByEmail(password)).willReturn(Optional.empty());
-        ClientService clientService = new ClientService(clientRepository);
+        ClientService clientService = new ClientService(clientRepository, null);
 
         clientService.signUpAccount(client);
     }
@@ -33,7 +35,7 @@ public class ClientServiceTest {
         Client client = Client.builder().email(email).password(password).build();
         ClientRepository clientRepository = mock(ClientRepository.class);
         given(clientRepository.findByEmail(email)).willReturn(Optional.empty());
-        ClientService clientService = new ClientService(clientRepository);
+        ClientService clientService = new ClientService(clientRepository, null);
 
         clientService.signUpAccount(client);
         fail("Can't sign up with invalid email");
@@ -46,7 +48,7 @@ public class ClientServiceTest {
         Client client = Client.builder().email(email).password(password).build();
         ClientRepository clientRepository = mock(ClientRepository.class);
         given(clientRepository.findByEmail(email)).willReturn(Optional.of(Client.builder().build()));
-        ClientService clientService = new ClientService(clientRepository);
+        ClientService clientService = new ClientService(clientRepository, null);
 
         clientService.signUpAccount(client);
         fail("Can't sign up with taken email");
@@ -57,7 +59,7 @@ public class ClientServiceTest {
         Client client = Client.builder().email("e").password("e").build();
         ClientRepository clientRepository = mock(ClientRepository.class);
         given(clientRepository.findByEmail(client.getEmail())).willReturn(Optional.of(client));
-        ClientService clientService = new ClientService(clientRepository);
+        ClientService clientService = new ClientService(clientRepository, getTransactionService());
 
         long balance = clientService.depositAmount(client.getEmail(), client.getPassword(), 100);
 
@@ -70,7 +72,7 @@ public class ClientServiceTest {
         ClientRepository clientRepository = mock(ClientRepository.class);
         given(clientRepository.findById(1L)).willReturn(Optional.empty());
 
-        ClientService clientService = new ClientService(clientRepository);
+        ClientService clientService = new ClientService(clientRepository, null);
 
         long balance = clientService.depositAmount(client.getEmail(), client.getPassword(), 100);
 
@@ -83,7 +85,7 @@ public class ClientServiceTest {
         ClientRepository clientRepository = mock(ClientRepository.class);
         given(clientRepository.findByEmail(client.getEmail())).willReturn(Optional.of(client));
 
-        ClientService clientService = new ClientService(clientRepository);
+        ClientService clientService = new ClientService(clientRepository, getTransactionService());
         long balance = clientService.withdrawAmount(client.getEmail(), client.getPassword(), 100);
 
         assertEquals(900, balance);
@@ -95,7 +97,7 @@ public class ClientServiceTest {
         ClientRepository clientRepository = mock(ClientRepository.class);
         given(clientRepository.findById(1L)).willReturn(Optional.empty());
 
-        ClientService clientService = new ClientService(clientRepository);
+        ClientService clientService = new ClientService(clientRepository, null);
         long balance = clientService.withdrawAmount(client.getEmail(), client.getPassword(), 100);
 
         fail("Client with email wasn't found");
@@ -107,9 +109,14 @@ public class ClientServiceTest {
         ClientRepository clientRepository = mock(ClientRepository.class);
         given(clientRepository.findByEmail(client.getEmail())).willReturn(Optional.of(client));
 
-        ClientService clientService = new ClientService(clientRepository);
+        ClientService clientService = new ClientService(clientRepository, getTransactionService());
         long balance = clientService.withdrawAmount(client.getEmail(), client.getPassword(), 100);
 
         fail("Not enough funds");
+    }
+
+    private TransactionService getTransactionService() {
+        TransactionRepository transactionRepository = mock(TransactionRepository.class);
+        return new TransactionService(transactionRepository);
     }
 }

@@ -18,10 +18,12 @@ import static com.javatask.banksystem.utils.Constants.emailValidationRegex;
 public class ClientService {
 
     private ClientRepository clientRepository;
+    private TransactionService transactionService;
 
     @Autowired
-    public ClientService(ClientRepository clientRepository) {
+    public ClientService(ClientRepository clientRepository, TransactionService transactionService) {
         this.clientRepository = clientRepository;
+        this.transactionService = transactionService;
     }
 
     public void signUpAccount(Client client) {
@@ -54,6 +56,7 @@ public class ClientService {
         Client client = login(email, password);
         client.setBalance(client.getBalance() + amount);
 
+        addNewTransaction(amount, client, TransactionType.DEPOSIT);
         return client.getBalance();
     }
 
@@ -63,12 +66,24 @@ public class ClientService {
         return client;
     }
 
+    private void addNewTransaction(long amount, Client client, TransactionType deposit) {
+        Transaction transaction = transactionService.saveNewTransaction(amount, deposit);
+        List<Transaction> transactions = client.getTransactions();
+        if (transactions == null) {
+            client.setTransactions(Arrays.asList(transaction));
+        } else {
+            transactions.add(transaction);
+        }
+        clientRepository.save(client);
+    }
+
     public long withdrawAmount(String email, String password, long amount) {
         Client client = login(email, password);
         if (client.getBalance() < amount) {
             throw new IllegalStateException("Not enough funds");
         }
         client.setBalance(client.getBalance() - amount);
+        addNewTransaction(amount, client, TransactionType.WITHDRAW);
         return client.getBalance();
     }
 
@@ -84,5 +99,10 @@ public class ClientService {
             throw new IllegalStateException("User not found");
         }
         return clientOptional.get();
+    }
+
+    public Client getInfo(Client client) {
+        Client client2 = login(client.getEmail(), client.getPassword());
+        return client2;
     }
 }
